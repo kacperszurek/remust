@@ -1,0 +1,7 @@
+base   remust
+author Kacper Szurek
+email  kacperszurek@gmail.com
+date   2012-03-15
+name   remust plugin
+desc   Sites that you must read
+url    https://github.com/kacperszurek/remust
