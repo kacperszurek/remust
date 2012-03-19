@@ -63,7 +63,8 @@ class action_plugin_remust extends DokuWiki_Action_Plugin {
     public function hook_act(Doku_Event &$event, $param) {
         global $ID;
         global $auth;
-        if ( strcmp($event->data, 'remust') != 0 ) {
+        
+        if ( is_array($event->data) || strcmp($event->data, 'remust') != 0 ) {
             return;
         }
         
