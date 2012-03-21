@@ -49,7 +49,8 @@ class action_plugin_remust extends DokuWiki_Action_Plugin {
         global $lang;
         global $ID;
         global $ACT;
-        
+        global $auth;
+
         // Chcemy dodać button tylko przy wyświetlaniu podstrony
         // Jeżeli takowa strona istnieje
         // I nie jest to w przestrzeni remust
@@ -60,6 +61,35 @@ class action_plugin_remust extends DokuWiki_Action_Plugin {
 
         if ( strcmp($ACT, 'show') == 0 && page_exists($ID) ) {
             $event->data .= '<a href="?do=remust&id='.$ID.'">'.$this->getLang('remust_page_link').'</a>';
+        }
+
+        // Jeżeli użytkownik jest zalogowany, sprawdzamy czy nie miał przeczytać tej strony
+        if ( !empty($_SERVER['REMOTE_USER']) ) {
+            // Czy istnieje strona w przestrzeni dokuwiki
+            if ( page_exists('remust:'.$ID) ) {
+                //Pobieramy tą stronę i sprawdzamy, czy nie ma tam usera
+                $pageContent = rawWiki('remust:'.$ID);
+                $exploded = explode("\n", $pageContent);
+
+                foreach ($exploded as $val) {
+                    $val = explode("|", $val);
+                    // Szukamy, do momentu gdy znajdziemy użytkownika
+                    if ( strcmp($val[0], $_SERVER['REMOTE_USER']) == 0 ) {
+                        // Czy już potwierdził?
+                        if ( empty($val[3]) ) {
+                            // Wyświetlamy formularz potwierdzenia
+                            $event->data .= '<br /><br />
+                                            '.sprintf($this->getLang('remust_before_read_text'), $val[2]).'
+                                            <form action="" method="POST">
+                                            <input type="hidden" name="sectok" value="'.getSecurityToken().'" />
+                                            <input type="submit" value="'.$this->getLang('remust_confirm_read').'" /> 
+                                            </form>
+                                            ';
+                        }
+                        break;
+                    }
+                }
+            }
         }
     }
 
