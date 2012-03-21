@@ -52,6 +52,12 @@ class action_plugin_remust extends DokuWiki_Action_Plugin {
         
         // Chcemy dodać button tylko przy wyświetlaniu podstrony
         // Jeżeli takowa strona istnieje
+        // I nie jest to w przestrzeni remust
+        $substr = explode(":", $ID);
+        if (count($substr) >= 2 && $substr[0] == 'remust') {
+            return;
+        }
+
         if ( strcmp($ACT, 'show') == 0 && page_exists($ID) ) {
             $event->data .= '<a href="?do=remust&id='.$ID.'">'.$this->getLang('remust_page_link').'</a>';
         }

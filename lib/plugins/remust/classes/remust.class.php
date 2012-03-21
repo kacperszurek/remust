@@ -49,48 +49,6 @@ class remust
 
             // Pobieramy listę użytkowników
             $users = $this->_auth->retrieveUsers();
-            
-            // Jeśli chcemy zaktualizować użytkowników
-            if ( $_POST && checkSecurityToken() ) {
-
-                //@todo sprawdzanie blokady strony
-                //checklock('remust'.$this->_id);
-
-                // Blokujemy stronę
-                lock('remust'.$this->_id);
-
-                // Nazwa zalogowanego użytkownika
-                $currentUserLogin = $_SERVER['REMOTE_USER'];
-
-                // Sprawdzamy, czy dodano tu już użytkowników
-                $isPageExist = page_exists('remust:'.$this->_id);
-
-                if ($isPageExist) {
-                    //@todo
-                } else {
-                    // Przygotowujemy dane do zapisu
-                    if ( !isset($_POST['users']) ) {
-                         throw new Exception('REMUST Error: 1');
-                    }
-
-                    $usersToAdd = explode(",", $_POST['users']);
-
-                    // Dodajemy datę i dodającego
-                    $pageContent = array();
-                    foreach ($usersToAdd as $val) {
-                        // @todo sprawdzenie czy użytkownik istnieje
-                        $pageContent[] = $val.'|'.date("d-m-Y H:i:s").'|'.$currentUserLogin;
-                    }
-
-                    $pageContent = implode("\n", $pageContent);
-                    
-                    //Tworzymy nową stronę w przestrzeni remust
-                    saveWikiText('remust:'.$this->_id, $pageContent, $this->_id, true);
-                }
-
-                // Odblokowujemy stronę
-                unlock('remust'.$this->_id);
-            }
 
             $usersArray = array();
             
@@ -98,9 +56,19 @@ class remust
                 $usersArray[$key] = array('id' => $key, 'name' => $val['name']);
             }
 
+
+            //@todo sprawdzanie blokady strony
+            //checklock('remust'.$this->_id);
+
+            // Blokujemy stronę
+            lock('remust'.$this->_id);
+
             $curentUsersArray = array();
 
-            if ( page_exists('remust:'.$this->_id) ) {
+            // Sprawdzamy, czy dodano tu już użytkowników
+            $isPageExist = page_exists('remust:'.$this->_id);
+
+            if ( $isPageExist ) {
                 // Pobieramy stronę
                 $rawPage = rawWiki('remust:'.$this->_id);
 
@@ -115,7 +83,72 @@ class remust
                     }
                 }
             }
-            
+            if ( isset($_POST['users']) ) {
+                $usersToAdd = explode(",", $_POST['users']);
+                
+                $currentUsersArray = array();
+
+                foreach ($usersToAdd as $val) {
+                    if ( isset($usersArray[$val]) ) {
+                        $currentUsersArray[] = array('id' => $val, 'name' => $usersArray[$val]['name']);
+                    }
+                }
+            }
+
+
+            // Jeśli chcemy zaktualizować użytkowników
+            if ( $_POST && checkSecurityToken() ) {
+
+                // Nazwa zalogowanego użytkownika
+                $currentUserLogin = $_SERVER['REMOTE_USER'];
+
+                // Przygotowujemy dane do zapisu
+                if ( !isset($_POST['users']) ) {
+                     throw new Exception('REMUST Error: 1');
+                }
+
+                $usersToAdd = explode(",", $_POST['users']);
+
+                if ($isPageExist) {
+                    // Ustawiamy userów którzy istnieją
+                    $newUsersArray = array();
+                    foreach ($usersToAdd as $val) {
+                        $newUsersArray[$val] = 1;
+                    }
+
+                    // Tworzymy page content, usuwając usuniętych
+                    $pageContent = array();
+                    foreach ($explodedPage as $val) {
+                        $val = explode('|', $val);
+                        if ( isset($newUsersArray[$val[0]]) ) {
+                            $pageContent[] = $val[0].'|'.$val[1].'|'.$val[2];
+                            unset($newUsersArray[$val[0]]);
+                        }
+                    }
+                    // Na samym końcu dodajemy nowo dodanych
+                    foreach ($newUsersArray as $key => $val) {
+                        $pageContent[] = $key.'|'.date("d-m-Y H:i:s").'|'.$currentUserLogin;
+                    }
+                } else {
+                    // Dodajemy datę i dodającego
+                    $pageContent = array();
+                    foreach ($usersToAdd as $val) {
+                        // @todo sprawdzenie czy użytkownik istnieje
+                        $pageContent[] = $val.'|'.date("d-m-Y H:i:s").'|'.$currentUserLogin;
+                    }
+                }
+                $pageContent = implode("\n", $pageContent);
+                
+                //Zapisujemy stronę w przestrzeni remust
+                saveWikiText('remust:'.$this->_id, $pageContent, $this->_id, true);
+                
+                // Wyświetlamy wiadomość
+                msg($this->_doku->getLang('remust_save_success'), 1);
+            }
+
+            // Odblokowujemy stronę
+            unlock('remust'.$this->_id);
+
             // Listę umieszczamy przy użyciu jquery data
             $this->_return .= "
                                 <script type='text/javascript'>
