@@ -17,12 +17,18 @@ class remust
      **/
     private $_auth = null;
 
+    /**
+     * Dostęp do globalnej zmiennej INFO
+     **/
+    private $_info = null;
+
     private $_return = '';
     
-    public function __construct($doku, $id, $auth) {
+    public function __construct($doku, $id, $auth, $info) {
         $this->_doku = $doku;
         $this->_id = $id;
         $this->_auth = $auth;
+        $this->_info = $info;
 
         switch ($_GET['opt']) {
             default:
@@ -97,7 +103,7 @@ class remust
 
 
             // Jeśli chcemy zaktualizować użytkowników
-            if ( $_POST && checkSecurityToken() ) {
+            if ( $_POST && checkSecurityToken() && $this->_info['perm'] >= AUTH_EDIT ) {
 
                 // Nazwa zalogowanego użytkownika
                 $currentUserLogin = $_SERVER['REMOTE_USER'];
@@ -150,21 +156,23 @@ class remust
             // Odblokowujemy stronę
             unlock('remust:'.$this->_id);
 
-            // Listę umieszczamy przy użyciu jquery data
-            $this->_return .= "
-                                <script type='text/javascript'>
-                                    jQuery.data( document.body, 'users', ".json_encode(array_values($usersArray))." );
-                                    ".(isset($currentUsersArray[0]) ? "jQuery.data( document.body, 'current_users', ".json_encode($currentUsersArray)." );" : '')."
-                                </script>
-                              "; 
-            
-            $this->_return .= '
-                                <form action="" method="POST">
-                                    <input type="hidden" name="sectok" value="'.getSecurityToken().'" />
-                                    <input type="text" id="remust-select-users" name="users" />
-                                    <input type="submit" value="'.$this->_doku->getLang('remust_select_users').'" />
-                                </form>
-                              ';
+            if ( $this->_info['perm'] >= AUTH_EDIT ) {
+                // Listę umieszczamy przy użyciu jquery data
+                $this->_return .= "
+                                    <script type='text/javascript'>
+                                        jQuery.data( document.body, 'users', ".json_encode(array_values($usersArray))." );
+                                        ".(isset($currentUsersArray[0]) ? "jQuery.data( document.body, 'current_users', ".json_encode($currentUsersArray)." );" : '')."
+                                    </script>
+                                  "; 
+                
+                $this->_return .= '
+                                    <form action="" method="POST">
+                                        <input type="hidden" name="sectok" value="'.getSecurityToken().'" />
+                                        <input type="text" id="remust-select-users" name="users" />
+                                        <input type="submit" value="'.$this->_doku->getLang('remust_select_users').'" />
+                                    </form>
+                                  ';
+            }
 
             // Wyświetlamy tabele użytkowników którzy mają potwierdzić przeczytanie
             $this->_return .= '<br /><br /><br />

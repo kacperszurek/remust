@@ -50,6 +50,7 @@ class action_plugin_remust extends DokuWiki_Action_Plugin {
         global $ID;
         global $ACT;
         global $auth;
+        global $INFO;
 
         // Chcemy dodać button tylko przy wyświetlaniu podstrony
         // Jeżeli takowa strona istnieje
@@ -63,7 +64,10 @@ class action_plugin_remust extends DokuWiki_Action_Plugin {
             return;
         }
 
-        $event->data .= '<a href="?do=remust&id='.$ID.'">'.$this->getLang('remust_page_link').'</a>';
+        // Link do dodawania pojawia się tylko gdy ma uprawnienia do edycji
+        if ( $INFO['perm'] >= AUTH_EDIT ) {
+            $event->data .= '<a href="?do=remust&id='.$ID.'">'.$this->getLang('remust_page_link').'</a>';
+        }
 
         // Jeżeli użytkownik jest zalogowany, sprawdzamy czy nie miał przeczytać tej strony
         if ( !empty($_SERVER['REMOTE_USER']) ) {
@@ -135,7 +139,7 @@ class action_plugin_remust extends DokuWiki_Action_Plugin {
 
         // Przekazujemy sterowanie do głównej klasy remust
         require_once(DOKU_PLUGIN.'/remust/classes/remust.class.php');
-        $this->_remust = new Remust($this, $ID, $auth);
+        $this->_remust = new Remust($this, $ID, $auth, $INFO);
         
         $event->preventDefault();
         return true;
