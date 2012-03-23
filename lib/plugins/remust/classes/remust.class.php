@@ -61,7 +61,7 @@ class remust
             //checklock('remust'.$this->_id);
 
             // Blokujemy stronę
-            lock('remust'.$this->_id);
+            lock('remust:'.$this->_id);
 
             $curentUsersArray = array();
 
@@ -121,7 +121,7 @@ class remust
                     foreach ($explodedPage as $val) {
                         $val = explode('|', $val);
                         if ( isset($newUsersArray[$val[0]]) ) {
-                            $pageContent[] = $val[0].'|'.$val[1].'|'.$val[2];
+                            $pageContent[] = $val[0].'|'.$val[1].'|'.$val[2].( isset($val[3]) ? '|'.$val[3] : '' );
                             unset($newUsersArray[$val[0]]);
                         }
                     }
@@ -137,6 +137,7 @@ class remust
                         $pageContent[] = $val.'|'.date("d-m-Y H:i:s").'|'.$currentUserLogin;
                     }
                 }
+                $explodedPage = $pageContent;
                 $pageContent = implode("\n", $pageContent);
                 
                 //Zapisujemy stronę w przestrzeni remust
@@ -147,7 +148,7 @@ class remust
             }
 
             // Odblokowujemy stronę
-            unlock('remust'.$this->_id);
+            unlock('remust:'.$this->_id);
 
             // Listę umieszczamy przy użyciu jquery data
             $this->_return .= "
@@ -164,5 +165,30 @@ class remust
                                     <input type="submit" value="'.$this->_doku->getLang('remust_select_users').'" />
                                 </form>
                               ';
+
+            // Wyświetlamy tabele użytkowników którzy mają potwierdzić przeczytanie
+            $this->_return .= '<br /><br /><br />
+                               <table cellpadding="0" cellspacing="0" border="0" class="display" id="remust-grid">
+                               <thead>
+                                    <tr>
+                                        <th>Użytkownik</th>
+                                        <th>Data poproszenia</th>
+                                        <th>Proszący</th>
+                                        <th>Data potwierdzenia</th>
+                                    </tr>
+                               </thead>
+                               <tbody>';
+
+            foreach ($explodedPage as $val) {
+                $val = explode("|", $val);
+                $this->_return .= '<tr>
+                                        <td>'.$val[0].'</td>
+                                        <td>'.$val[1].'</td>
+                                        <td>'.$val[2].'</td>
+                                        <td>'.( isset($val[3]) ? $val[3] : '').'</td>
+                                   </tr>';
+            }
+
+            $this->_return .= '</tbody></table>';
     }
 }
