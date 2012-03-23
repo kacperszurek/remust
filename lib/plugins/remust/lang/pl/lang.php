@@ -11,3 +11,5 @@ $lang['remust_save_success'] = 'Dane zostały prawidłowo zapisane';
 $lang['remust_before_read_text'] = 'Użytkownik <b>%s</b> poprosił o przeczytanie tego artykułu';
 $lang['remust_confirm_read'] = 'Potwierdź';
 $lang['remust_confirmed_read'] = 'Potwierdziłeś przeczytanie strony';
+$lang['remust_mail_info_subject'] = 'Prośba o przeczytanie strony';
+$lang['remust_mail_info_body'] = "Witaj,\nJedna z osób poprosiła Cię o przeczytanie strony: %s";

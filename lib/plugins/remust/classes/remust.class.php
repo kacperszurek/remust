@@ -59,9 +59,8 @@ class remust
             $usersArray = array();
             
             foreach ($users as $key => $val) {
-                $usersArray[$key] = array('id' => $key, 'name' => $val['name']);
+                $usersArray[$key] = array('id' => $key, 'name' => $val['name'], 'email' => $val['mail']);
             }
-
 
             //@todo sprawdzanie blokady strony
             //checklock('remust'.$this->_id);
@@ -134,6 +133,7 @@ class remust
                     // Na samym końcu dodajemy nowo dodanych
                     foreach ($newUsersArray as $key => $val) {
                         $pageContent[] = $key.'|'.date("d-m-Y H:i:s").'|'.$currentUserLogin;
+                        $this->_sendMail($usersArray[$val]['email'], DOKU_URL.'doku.php?id='.$this->_id);
                     }
                 } else {
                     // Dodajemy datę i dodającego
@@ -141,6 +141,7 @@ class remust
                     foreach ($usersToAdd as $val) {
                         // @todo sprawdzenie czy użytkownik istnieje
                         $pageContent[] = $val.'|'.date("d-m-Y H:i:s").'|'.$currentUserLogin;
+                        $this->_sendMail($usersArray[$val]['email'], DOKU_URL.'doku.php?id='.$this->_id);
                     }
                 }
                 $explodedPage = $pageContent;
@@ -198,5 +199,15 @@ class remust
             }
 
             $this->_return .= '</tbody></table>';
+    }
+    
+    /**
+     * Wysyłanie maila do użytkownika
+     * z informacją o prośbę o przeczytanie strony
+     * @param string $to
+     * @param string $page;
+     **/
+    protected function _sendMail($to, $page) {
+        mail_send($to, $this->_doku->getLang('remust_mail_info_subject'), sprintf($this->_doku->getLang('remust_mail_info_body'), $page));
     }
 }
