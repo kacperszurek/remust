@@ -99,7 +99,16 @@ class action_plugin_remust extends DokuWiki_Action_Plugin {
     public function hook_act(Doku_Event &$event, $param) {
         global $ID;
         global $auth;
-        
+        global $INFO;
+
+        // Zabezpieczamy strony w przestrzeni remust przed edycją
+        if ( strcmp(substr($ID, 0, 6), 'remust') == 0 ) {
+            // Dzięki temu, nawet admin nie może ich edytować
+            $INFO['perm'] = AUTH_READ;
+            $INFO['editable'] = 0;
+            $INFO['writable'] = 0;
+        }
+
         if ( is_array($event->data) || strcmp($event->data, 'remust') != 0 ) {
             return;
         }
