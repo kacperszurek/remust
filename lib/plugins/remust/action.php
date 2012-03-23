@@ -67,28 +67,44 @@ class action_plugin_remust extends DokuWiki_Action_Plugin {
         if ( !empty($_SERVER['REMOTE_USER']) ) {
             // Czy istnieje strona w przestrzeni dokuwiki
             if ( page_exists('remust:'.$ID) ) {
+                lock('remust:'.$ID);
                 //Pobieramy tą stronę i sprawdzamy, czy nie ma tam usera
                 $pageContent = rawWiki('remust:'.$ID);
                 $exploded = explode("\n", $pageContent);
 
-                foreach ($exploded as $val) {
+                foreach ($exploded as $key => $val) {
                     $val = explode("|", $val);
                     // Szukamy, do momentu gdy znajdziemy użytkownika
                     if ( strcmp($val[0], $_SERVER['REMOTE_USER']) == 0 ) {
                         // Czy już potwierdził?
-                        if ( empty($val[3]) ) {
-                            // Wyświetlamy formularz potwierdzenia
-                            $event->data .= '<br /><br />
-                                            '.sprintf($this->getLang('remust_before_read_text'), $val[2]).'
-                                            <form action="" method="POST">
-                                            <input type="hidden" name="sectok" value="'.getSecurityToken().'" />
-                                            <input type="submit" value="'.$this->getLang('remust_confirm_read').'" /> 
-                                            </form>
-                                            ';
+                        if ( empty($val[3])  ) {
+                            // Jeżeli użytkownik chce teraz potwierdzić przeczytanie podstrony
+                            if ( isset($_POST['confirm']) && checkSecurityToken() ) {
+                                // Zapisujemy date przeczytania
+                                $exploded[$key] = $val[0].'|'.$val[1].'|'.$val[2].'|'.date("d-m-Y H:i:s");
+
+                                // Zapisujemy zmodyfikowaną stronę          
+                                $pageContent = implode("\n", $exploded);
+                                 saveWikiText('remust:'.$ID, $pageContent, $ID, true);
+                                 msg($this->getLang('remust_confirmed_read'), 1);
+
+                            } else {                                
+                                // Wyświetlamy formularz potwierdzenia
+                                $event->data .= '<br /><br />
+                                                '.sprintf($this->getLang('remust_before_read_text'), $val[2]).'
+                                                <form action="" method="POST">
+                                                <input type="hidden" name="sectok" value="'.getSecurityToken().'" />
+                                                <input type="submit" name="confirm" value="'.$this->getLang('remust_confirm_read').'" /> 
+                                                </form>
+                                                ';
+                            }
                         }
                         break;
                     }
                 }
+
+                unlock('remust:'.$ID);
+
             }
         }
     }

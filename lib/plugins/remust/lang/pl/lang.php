@@ -10,3 +10,4 @@ $lang['remust_select_users'] = 'Wybierz użytkowników';
 $lang['remust_save_success'] = 'Dane zostały prawidłowo zapisane';
 $lang['remust_before_read_text'] = 'Użytkownik <b>%s</b> poprosił o przeczytanie tego artykułu';
 $lang['remust_confirm_read'] = 'Potwierdź';
+$lang['remust_confirmed_read'] = 'Potwierdziłeś przeczytanie strony';
