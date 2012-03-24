@@ -145,7 +145,7 @@ class remust
                     foreach ($newUsersArray as $key => $val) {
                         if ( isset($usersArray[$key]) ) {
                             $pageContent[] = $key.'|'.date("d-m-Y H:i:s").'|'.$currentUserLogin;
-                            $this->_sendMail($usersArray[$val]['email'], DOKU_URL.'doku.php?id='.$this->_id);
+                            $this->_sendMail($usersArray[$key]['email'], DOKU_URL.'doku.php?id='.$this->_id);
                         }
                     }
                 } else {
