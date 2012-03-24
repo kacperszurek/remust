@@ -122,6 +122,7 @@ class action_plugin_remust extends DokuWiki_Action_Plugin {
         global $ID;
         global $auth;
         global $INFO;
+        global $conf;
 
         // Zabezpieczamy strony w przestrzeni remust przed edycją
         if ( strcmp(substr($ID, 0, 6), 'remust') == 0 ) {
@@ -139,7 +140,7 @@ class action_plugin_remust extends DokuWiki_Action_Plugin {
 
         // Przekazujemy sterowanie do głównej klasy remust
         require_once(DOKU_PLUGIN.'/remust/classes/remust.class.php');
-        $this->_remust = new Remust($this, $ID, $auth, $INFO);
+        $this->_remust = new Remust($this, $ID, $auth, $INFO, $conf);
         
         $event->preventDefault();
         return true;

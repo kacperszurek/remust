@@ -22,15 +22,26 @@ class remust
      **/
     private $_info = null;
 
+    /**
+     * Dostęp do globalnej zmiennej conf
+     **/
+    private $_conf = null;
+
     private $_return = '';
     
-    public function __construct($doku, $id, $auth, $info) {
+    public function __construct($doku, $id, $auth, $info, $conf) {
         $this->_doku = $doku;
         $this->_id = $id;
         $this->_auth = $auth;
         $this->_info = $info;
+        $this->_conf = $conf;
 
         switch ($_GET['opt']) {
+            // Informacje o moich podstronach do przeczytania
+            case 'my':
+                $this->_my();
+            break;
+
             default:
                 // Dodawanie strony do listy do przeczytania 
                 $this->_addTo();            
@@ -180,27 +191,115 @@ class remust
                                <table cellpadding="0" cellspacing="0" border="0" class="display" id="remust-grid">
                                <thead>
                                     <tr>
-                                        <th>Użytkownik</th>
-                                        <th>Data poproszenia</th>
-                                        <th>Proszący</th>
-                                        <th>Data potwierdzenia</th>
+                                        <th>'.$this->_doku->getLang('remust_user').'</th>
+                                        <th>'.$this->_doku->getLang('remust_ask_date').'</th>
+                                        <th>'.$this->_doku->getLang('remust_asker').'</th>
+                                        <th>'.$this->_doku->getLang('remust_confirm_date').'</th>
                                     </tr>
                                </thead>
                                <tbody>';
 
-            foreach ($explodedPage as $val) {
-                $val = explode("|", $val);
-                $this->_return .= '<tr>
-                                        <td>'.$val[0].'</td>
-                                        <td>'.$val[1].'</td>
-                                        <td>'.$val[2].'</td>
-                                        <td>'.( isset($val[3]) ? $val[3] : '').'</td>
-                                   </tr>';
+            if ( isset($explodedPage) ) {
+                foreach ($explodedPage as $val) {
+                    $val = explode("|", $val);
+                    $this->_return .= '<tr>
+                                            <td>'.$val[0].'</td>
+                                            <td>'.$val[1].'</td>
+                                            <td>'.$val[2].'</td>
+                                            <td>'.( isset($val[3]) ? $val[3] : '').'</td>
+                                       </tr>';
+                }
             }
 
             $this->_return .= '</tbody></table>';
     }
     
+    /**
+     * Informacje na temat podstron do przeczytania bieżącego użytkownika
+     **/
+    private function _my() {
+        // Sprawdzamy, czy jest zalogowany
+        $currentUserLogin = $_SERVER['REMOTE_USER'];
+
+        if ( empty($currentUserLogin) ) {
+            throw new Exception('REMUST Error: 2');
+        }
+
+        // Pobieramy listę wszystkich stron w przestrzeni remust
+        
+        // Funkcja sprawdzająca, czy użytkownik ma dostęp do tej podstrony
+        function search_remust(&$data, $base, $file, $type, $lvl, $opts) {
+            // Obsługa katalogów
+            if ( $type == 'd' ) {
+                if ( !$opts['depth'] ) {
+                    return true;
+                }
+
+                $parts = explode('/',ltrim($file,'/'));
+                if ( count($parts) == $opts['depth'] ) {
+                    return false;
+                }
+
+                return true;
+            }
+
+            // szukamy tylko plików tekstowych
+            if ( substr($file,-4) != '.txt' ) {
+                return true;
+            }
+            
+            // Sprawdzenie ACL
+            $pageId = pathID($file);
+            if( !$opts['skipacl'] && auth_quickaclcheck($pageId) < AUTH_READ ) {
+                return false;
+            }
+            
+            $data[] = $pageId;
+            return true;
+        }
+
+        $pagesList = array();
+        $dir = $this->_conf['datadir']. DIRECTORY_SEPARATOR . 'remust';
+		search($pagesList, $dir, 'search_remust', array());
+
+        $this->_return .= '
+                           <table cellpadding="0" cellspacing="0" border="0" class="display" id="remust-grid">
+                           <thead>
+                                <tr>
+                                    <th>'.$this->_doku->getLang('remust_page').'</th>
+                                    <th>'.$this->_doku->getLang('remust_ask_date').'</th>
+                                    <th>'.$this->_doku->getLang('remust_asker').'</th>
+                                    <th>'.$this->_doku->getLang('remust_confirm_date').'</th>
+                                </tr>
+                           </thead>
+                           <tbody>';
+
+
+        // Sprawdzamy, czy w którejś z tych podstron nie ma usera
+        foreach ($pagesList as $page) {
+            $raw = rawWiki('remust:'.$page);
+            $explode = explode("\n", $raw);
+
+            foreach ($explode as $val) {
+                $piece = explode("|", $val);
+
+                if ( strcmp($piece[0], $currentUserLogin) == 0 ) {
+                    $this->_return .= '<tr>
+                                            <td><a href="'.DOKU_URL.'doku.php?id='.$page.'">'.$page.'</a></td>
+                                            <td>'.$piece[1].'</td>
+                                            <td>'.$piece[2].'</td>
+                                            <td>'.( isset($piece[3]) ? $piece[3] : '').'</td>
+                                       </tr>';
+    
+                }
+            }            
+        }
+
+        $this->_return .= '</tbody></table>';
+
+
+    }
+
     /**
      * Wysyłanie maila do użytkownika
      * z informacją o prośbę o przeczytanie strony
