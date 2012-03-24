@@ -113,7 +113,7 @@ class remust
 
 
             // Jeśli chcemy zaktualizować użytkowników
-            if ( $_POST && checkSecurityToken() && $this->_info['perm'] >= AUTH_EDIT ) {
+            if ( isset($_POST['users']) && checkSecurityToken() && $this->_info['perm'] >= AUTH_EDIT ) {
 
                 // Nazwa zalogowanego użytkownika
                 $currentUserLogin = $_SERVER['REMOTE_USER'];
@@ -143,16 +143,19 @@ class remust
                     }
                     // Na samym końcu dodajemy nowo dodanych
                     foreach ($newUsersArray as $key => $val) {
-                        $pageContent[] = $key.'|'.date("d-m-Y H:i:s").'|'.$currentUserLogin;
-                        $this->_sendMail($usersArray[$val]['email'], DOKU_URL.'doku.php?id='.$this->_id);
+                        if ( isset($usersArray[$key]) ) {
+                            $pageContent[] = $key.'|'.date("d-m-Y H:i:s").'|'.$currentUserLogin;
+                            $this->_sendMail($usersArray[$val]['email'], DOKU_URL.'doku.php?id='.$this->_id);
+                        }
                     }
                 } else {
                     // Dodajemy datę i dodającego
                     $pageContent = array();
                     foreach ($usersToAdd as $val) {
-                        // @todo sprawdzenie czy użytkownik istnieje
-                        $pageContent[] = $val.'|'.date("d-m-Y H:i:s").'|'.$currentUserLogin;
-                        $this->_sendMail($usersArray[$val]['email'], DOKU_URL.'doku.php?id='.$this->_id);
+                        if ( isset($usersArray[$val]) ) {
+                            $pageContent[] = $val.'|'.date("d-m-Y H:i:s").'|'.$currentUserLogin;
+                            $this->_sendMail($usersArray[$val]['email'], DOKU_URL.'doku.php?id='.$this->_id);
+                        }
                     }
                 }
                 $explodedPage = $pageContent;
