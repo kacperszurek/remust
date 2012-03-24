@@ -310,6 +310,6 @@ class remust
      * @param string $page;
      **/
     protected function _sendMail($to, $page) {
-        mail_send($to, $this->_doku->getLang('remust_mail_info_subject'), sprintf($this->_doku->getLang('remust_mail_info_body'), $page));
+        mail_send($to, $this->_doku->getLang('remust_mail_info_subject'), sprintf($this->_doku->getLang('remust_mail_info_body'), $page), $this->_conf['mailfrom']);
     }
 }
