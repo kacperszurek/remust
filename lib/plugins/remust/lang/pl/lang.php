@@ -19,3 +19,6 @@ $lang['remust_asker'] = 'Proszący';
 $lang['remust_confirm_date'] = 'Data potwierdzenia';
 $lang['remust_user'] = 'Użytkownik';
 $lang['remust_not_your_data'] = 'Nie możesz usunąć użytkownika %s ponieważ nie Ty go wprowadziłeś';
+$lang['remust_change_rev'] = 'Zmień rewizję';
+$lang['remust_newest_rev'] = 'Najnowsza rewizja';
+$lang['remust_rev_not_exist'] = 'Taka rewizja nie istnieje';

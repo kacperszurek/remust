@@ -63,6 +63,9 @@ class remust
             if ( !page_exists($this->_id) ) {
                 throw new Exception(sprintf($this->_doku->getLang('remust_page_not_exist'), html_wikilink($this->_id)));    
             }
+            
+            // Czy można zapisać postronę
+            $isError = false;
 
             // Pobieramy listę użytkowników
             $users = $this->_auth->retrieveUsers();
@@ -81,12 +84,15 @@ class remust
 
             $curentUsersArray = array();
 
+            // Jeżeli zaznaczono numer konkretnej rewizji
+            $rev = ( isset($_GET['rev']) ? $_GET['rev'] : '');
+
             // Sprawdzamy, czy dodano tu już użytkowników
-            $isPageExist = page_exists('remust:'.$this->_id);
+            $isPageExist = page_exists('remust:'.$this->_id, $rev);
 
             if ( $isPageExist ) {
                 // Pobieramy stronę
-                $rawPage = rawWiki('remust:'.$this->_id);
+                $rawPage = rawWiki('remust:'.$this->_id, $rev);
 
                 //Przetwarzamy istniejące tam dane
                 $explodedPage = explode("\n", $rawPage);
@@ -98,7 +104,11 @@ class remust
                         $currentUsersArray[] = array('id' => $userLogin, 'name' => $usersArray[$userLogin]['name']);
                     }
                 }
+            } else {
+                msg($this->_doku->getLang('remust_rev_not_exist'), -1);
+                $isError = true;
             }
+
             if ( isset($_POST['users']) ) {
                 $usersToAdd = explode(",", $_POST['users']);
                 
@@ -114,9 +124,6 @@ class remust
 
             // Jeśli chcemy zaktualizować użytkowników
             if ( isset($_POST['users']) && checkSecurityToken() && $this->_info['perm'] >= AUTH_EDIT ) {
-                // Czy można zapisać podstronę?
-                $isError = false;
-
                 // Nazwa zalogowanego użytkownika
                 $currentUserLogin = $_SERVER['REMOTE_USER'];
 
@@ -200,6 +207,40 @@ class remust
                                   ';
             }
 
+            // Pobieramy listę wcześniejszych rewizji
+            $revisionsArray = getRevisions('remust:'.$this->_id, 0, 100);
+            $revisions = array();
+            
+            if ( !empty($revisionsArray) ) {
+                // Zamieniamy numer rewizji na czytelną datę
+                foreach ($revisionsArray as $r) {
+                    $revisions[$r] = date("d-m-Y H:i:s", $r);
+                }
+            }
+            
+            // Jeżeli istnieją stare rewizję, wyświetlamy formularz wyboru
+            if ( !empty($revisions) ) {
+                $this->_return .= '
+                                    <br /><br />
+                                    <form action="'.wl('remust:'.$this->_id, array('do' => 'remust')).'" method="GET">
+                                        <input type="hidden" name="sectok" value="'.getSecurityToken().'" />
+                                        <input type="hidden" name="id" value="'.$this->_id.'" />
+                                        <input type="hidden" name="do" value="remust" />
+                                        <select name="rev">
+                                            <option value="">'.$this->_doku->getLang('remust_newest_rev').'</option>
+                                  ';
+
+                foreach ($revisions as $key => $val) {
+                    $this->_return .= '<option value="'.$key.'" '.(strcmp($key, $rev) === 0 ? ' SELECTED ' : '').'>'.$val.'</option>';
+                }
+
+                $this->_return .= '
+                                        </select>
+                                        <input type="submit" value="'.$this->_doku->getLang('remust_change_rev').'" />
+                                    </form>
+                                 ';
+            }
+
             // Wyświetlamy tabele użytkowników którzy mają potwierdzić przeczytanie
             $this->_return .= '<br /><br /><br />
                                <table cellpadding="0" cellspacing="0" border="0" class="display" id="remust-grid">
@@ -219,7 +260,7 @@ class remust
                     $this->_return .= '<tr>
                                             <td>'.$usersArray[$val[0]]['name'].'</td>
                                             <td>'.$val[1].'</td>
-                                            <td>'.$val[2].'</td>
+                                            <td>'.$usersArray[$val[2]]['name'].'</td>
                                             <td>'.( isset($val[3]) ? $val[3] : '').'</td>
                                        </tr>';
                 }
