@@ -61,7 +61,8 @@ class remust
     private function _addTo() {
             // Należy sprawdzić, czy taka podstrona istnieje
             if ( !page_exists($this->_id) ) {
-                throw new Exception(sprintf($this->_doku->getLang('remust_page_not_exist'), html_wikilink($this->_id)));    
+                msg(sprintf($this->_doku->getLang('remust_page_not_exist'), html_wikilink($this->_id)), -1);    
+                return;
             }
             
             // Czy można zapisać postronę
@@ -126,11 +127,6 @@ class remust
             if ( isset($_POST['users']) && checkSecurityToken() && $this->_info['perm'] >= AUTH_EDIT ) {
                 // Nazwa zalogowanego użytkownika
                 $currentUserLogin = $_SERVER['REMOTE_USER'];
-
-                // Przygotowujemy dane do zapisu
-                if ( !isset($_POST['users']) ) {
-                     throw new Exception('REMUST Error: 1');
-                }
 
                 $usersToAdd = explode(",", $_POST['users']);
 
@@ -277,7 +273,8 @@ class remust
         $currentUserLogin = $_SERVER['REMOTE_USER'];
 
         if ( empty($currentUserLogin) ) {
-            throw new Exception('REMUST Error: 2');
+            msg($this->_doku->getLang('remust_must_login'), -1);
+            return;
         }
 
         // Pobieramy listę wszystkich stron w przestrzeni remust

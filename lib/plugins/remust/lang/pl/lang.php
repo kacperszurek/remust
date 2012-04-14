@@ -22,3 +22,4 @@ $lang['remust_not_your_data'] = 'Nie możesz usunąć użytkownika %s ponieważ 
 $lang['remust_change_rev'] = 'Zmień rewizję';
 $lang['remust_newest_rev'] = 'Najnowsza rewizja';
 $lang['remust_rev_not_exist'] = 'Taka rewizja nie istnieje';
+$lang['remust_must_login'] = 'Musisz się zalogować aby przeglądać tą stronę';
