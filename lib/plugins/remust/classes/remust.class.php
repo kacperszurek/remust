@@ -114,6 +114,8 @@ class remust
 
             // Jeśli chcemy zaktualizować użytkowników
             if ( isset($_POST['users']) && checkSecurityToken() && $this->_info['perm'] >= AUTH_EDIT ) {
+                // Czy można zapisać podstronę?
+                $isError = false;
 
                 // Nazwa zalogowanego użytkownika
                 $currentUserLogin = $_SERVER['REMOTE_USER'];
@@ -139,6 +141,12 @@ class remust
                         if ( isset($newUsersArray[$val[0]]) ) {
                             $pageContent[] = $val[0].'|'.$val[1].'|'.$val[2].( isset($val[3]) ? '|'.$val[3] : '' );
                             unset($newUsersArray[$val[0]]);
+                        } else {
+                            // Usunąć może tylko osoba która dodała informacje
+                            if ( strcmp($val[2], $currentUserLogin) !== 0 ) {
+                                msg(sprintf($this->_doku->getLang('remust_not_your_data'), $val[0]), -1);
+                                $isError = true;
+                            }
                         }
                     }
                     // Na samym końcu dodajemy nowo dodanych
@@ -158,14 +166,17 @@ class remust
                         }
                     }
                 }
-                $explodedPage = $pageContent;
-                $pageContent = implode("\n", $pageContent);
-                
-                //Zapisujemy stronę w przestrzeni remust
-                saveWikiText('remust:'.$this->_id, $pageContent, $this->_id, true);
-                
-                // Wyświetlamy wiadomość
-                msg($this->_doku->getLang('remust_save_success'), 1);
+
+                if ( !$isError) {
+                    $explodedPage = $pageContent;
+                    $pageContent = implode("\n", $pageContent);
+                    
+                    //Zapisujemy stronę w przestrzeni remust
+                    saveWikiText('remust:'.$this->_id, $pageContent, $this->_id, true);
+                    
+                    // Wyświetlamy wiadomość
+                    msg($this->_doku->getLang('remust_save_success'), 1);
+                }
             }
 
             // Odblokowujemy stronę

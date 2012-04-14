@@ -18,3 +18,4 @@ $lang['remust_ask_date'] = 'Data poproszenia';
 $lang['remust_asker'] = 'Proszący';
 $lang['remust_confirm_date'] = 'Data potwierdzenia';
 $lang['remust_user'] = 'Użytkownik';
+$lang['remust_not_your_data'] = 'Nie możesz usunąć użytkownika %s ponieważ nie Ty go wprowadziłeś';
