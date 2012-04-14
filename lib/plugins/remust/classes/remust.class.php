@@ -35,11 +35,14 @@ class remust
         $this->_auth = $auth;
         $this->_info = $info;
         $this->_conf = $conf;
-
         switch ($_GET['opt']) {
             // Informacje o moich podstronach do przeczytania
             case 'my':
                 $this->_my();
+            break;
+
+            case 'syntax':
+                $this->_syntax();
             break;
 
             default:
@@ -67,6 +70,8 @@ class remust
             
             // Czy można zapisać postronę
             $isError = false;
+
+            $explodedPage = array();
 
             // Pobieramy listę użytkowników
             $users = $this->_auth->retrieveUsers();
@@ -238,33 +243,81 @@ class remust
             }
 
             // Wyświetlamy tabele użytkowników którzy mają potwierdzić przeczytanie
-            $this->_return .= '<br /><br /><br />
-                               <table cellpadding="0" cellspacing="0" border="0" class="display" id="remust-grid">
-                               <thead>
-                                    <tr>
-                                        <th>'.$this->_doku->getLang('remust_user').'</th>
-                                        <th>'.$this->_doku->getLang('remust_ask_date').'</th>
-                                        <th>'.$this->_doku->getLang('remust_asker').'</th>
-                                        <th>'.$this->_doku->getLang('remust_confirm_date').'</th>
-                                    </tr>
-                               </thead>
-                               <tbody>';
+            $this->_return .= $this->_returnTable($explodedPage, $usersArray);
 
-            if ( isset($explodedPage) ) {
-                foreach ($explodedPage as $val) {
-                    $val = explode("|", $val);
-                    $this->_return .= '<tr>
-                                            <td>'.$usersArray[$val[0]]['name'].'</td>
-                                            <td>'.$val[1].'</td>
-                                            <td>'.$usersArray[$val[2]]['name'].'</td>
-                                            <td>'.( isset($val[3]) ? $val[3] : '').'</td>
-                                       </tr>';
-                }
-            }
-
-            $this->_return .= '</tbody></table>';
     }
     
+    /**
+     * Wyświetla raport dla syntax pluginu
+     **/
+    private function _syntax() {
+        // Należy sprawdzić, czy taka podstrona istnieje
+        if ( !page_exists($this->_id) ) {
+            return;
+        }
+
+        // Sprawdzamy, czy dodano tu już użytkowników
+        $isPageExist = page_exists('remust:'.$this->_id);
+
+        if ( $isPageExist ) {
+            // Pobieramy stronę
+            $rawPage = rawWiki('remust:'.$this->_id);
+
+            //Przetwarzamy istniejące tam dane
+            $explodedPage = explode("\n", $rawPage);
+
+            echo $this->_returnTable($explodedPage);
+        }
+
+        die();
+    }
+
+    /**
+     * Drukuje tabelę z wynikami raportu
+     * @param $explodedPage Treść z rewizji
+     * @param $usersArray = array() Tablica z użytkownikami
+     **/
+    private function _returnTable($explodedPage, $usersArray = array()) {
+        $return = '';
+
+        if ( empty($usersArray) ) {
+            // Pobieramy listę użytkowników
+            $users = $this->_auth->retrieveUsers();
+
+            foreach ($users as $key => $val) {
+                $usersArray[$key] = array('id' => $key, 'name' => $val['name'].' &#40;'.$key.'&#41;', 'email' => $val['mail']);
+            }
+
+        }
+
+        $return .= '<br /><br /><br />
+                           <table cellpadding="0" cellspacing="0" border="0" class="display remust-grid">
+                           <thead>
+                                <tr>
+                                    <th>'.$this->_doku->getLang('remust_user').'</th>
+                                    <th>'.$this->_doku->getLang('remust_ask_date').'</th>
+                                    <th>'.$this->_doku->getLang('remust_asker').'</th>
+                                    <th>'.$this->_doku->getLang('remust_confirm_date').'</th>
+                                </tr>
+                           </thead>
+                           <tbody>';
+
+        if ( !empty($explodedPage) ) {
+            foreach ($explodedPage as $val) {
+                $val = explode("|", $val);
+                $return .= '<tr>
+                                        <td>'.$usersArray[$val[0]]['name'].'</td>
+                                        <td>'.$val[1].'</td>
+                                        <td>'.$usersArray[$val[2]]['name'].'</td>
+                                        <td>'.( isset($val[3]) ? $val[3] : '').'</td>
+                                   </tr>';
+            }
+        }
+
+        $return .= '</tbody></table>';
+        return $return;
+    }
+
     /**
      * Informacje na temat podstron do przeczytania bieżącego użytkownika
      **/
