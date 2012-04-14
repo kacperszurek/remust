@@ -70,7 +70,7 @@ class remust
             $usersArray = array();
             
             foreach ($users as $key => $val) {
-                $usersArray[$key] = array('id' => $key, 'name' => $val['name'], 'email' => $val['mail']);
+                $usersArray[$key] = array('id' => $key, 'name' => $val['name'].' &#40;'.$key.'&#41;', 'email' => $val['mail']);
             }
 
             //@todo sprawdzanie blokady strony
@@ -206,7 +206,7 @@ class remust
                 foreach ($explodedPage as $val) {
                     $val = explode("|", $val);
                     $this->_return .= '<tr>
-                                            <td>'.$val[0].'</td>
+                                            <td>'.$usersArray[$val[0]]['name'].'</td>
                                             <td>'.$val[1].'</td>
                                             <td>'.$val[2].'</td>
                                             <td>'.( isset($val[3]) ? $val[3] : '').'</td>
