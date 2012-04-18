@@ -41,8 +41,14 @@ class remust
                 $this->_my();
             break;
 
+            // Syntax plugin
             case 'syntax':
                 $this->_syntax();
+            break;
+
+            // Pobieranie pasujących uzytkowników
+            case 'users':
+                $this->_users();
             break;
 
             default:
@@ -200,7 +206,6 @@ class remust
                 // Listę umieszczamy przy użyciu jquery data
                 $this->_return .= "
                                     <script type='text/javascript'>
-                                        jQuery.data( document.body, 'users', ".json_encode(array_values($usersArray))." );
                                         ".(isset($currentUsersArray[0]) ? "jQuery.data( document.body, 'current_users', ".json_encode($currentUsersArray)." );" : '')."
                                     </script>
                                   "; 
@@ -424,5 +429,31 @@ class remust
      **/
     protected function _sendMail($to, $page) {
         mail_send($to, $this->_doku->getLang('remust_mail_info_subject'), sprintf($this->_doku->getLang('remust_mail_info_body'), $page), $this->_conf['mailfrom']);
+    }
+
+    /**
+     * Poszukuje pasujących użytkowników do podanego wzorca
+     **/
+    private function _users() {
+        // Sprawdzamy czy podano ciąg do poszukiwania
+        if ( !isset($_GET['q']) || empty($_GET['q']) ) {
+            die();
+        }
+
+        $q = $_GET['q'];
+
+        // Pobieramy wszystkich użytkowników
+        $users = $this->_auth->retrieveUsers();
+        
+        $usersArray = array();
+
+        foreach ( $users as $key => $val ) {
+            // Sprawdzamy, czy któryś nie pasuje
+            if ( stripos($key, $q) !== false || stripos($val['name'], $q) !== false ) {
+                $usersArray[] = array('id' => $key, 'name' => $val['name'].' &#40;'.$key.'&#41;');
+            }
+        }
+
+        die( json_encode(array_values($usersArray)) );
     }
 }
