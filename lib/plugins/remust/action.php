@@ -73,6 +73,22 @@ class action_plugin_remust extends DokuWiki_Action_Plugin {
         if ( !empty($_SERVER['REMOTE_USER']) ) {
             // Czy istnieje strona w przestrzeni dokuwiki
             if ( page_exists('remust:'.$ID) ) {
+
+                $waitCount = 0;
+                //sprawdzanie blokady strony
+                while ( checklock('remust:'.$ID) !== false ) {
+                    // Czekamy
+                    usleep(100);
+
+                    ++$waitCount;
+                    
+                    // Jeżeli czekamy za długo
+                    if ( $waitCount > 5 ) {
+                        // Nie wyświetlamy żadnej informacji
+                        return;
+                    }
+                }
+
                 lock('remust:'.$ID);
                 //Pobieramy tą stronę i sprawdzamy, czy nie ma tam usera
                 $pageContent = rawWiki('remust:'.$ID);
