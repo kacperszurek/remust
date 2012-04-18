@@ -68,6 +68,12 @@ class remust
                 return;
             }
             
+            // Czy użytkownik może czytać tą podstronę?
+            if ( $this->_info['perm'] < AUTH_READ ) {
+                msg($this->_doku->getLang('remust_cannot_read_this_page'), -1);
+                return;
+            }
+
             // Czy można zapisać postronę
             $isError = false;
 
@@ -110,7 +116,7 @@ class remust
                         $currentUsersArray[] = array('id' => $userLogin, 'name' => $usersArray[$userLogin]['name']);
                     }
                 }
-            } else {
+            } else if ( isset($_GET['rev']) ) {
                 msg($this->_doku->getLang('remust_rev_not_exist'), -1);
                 $isError = true;
             }
@@ -254,6 +260,11 @@ class remust
         // Należy sprawdzić, czy taka podstrona istnieje
         if ( !page_exists($this->_id) ) {
             return;
+        }
+        
+        // Czy użytkownik może czytać tą podstronę?
+        if ( $this->_info['perm'] < AUTH_READ ) {
+            die( $this->_doku->getLang('remust_cannot_read_this_page') );
         }
 
         // Sprawdzamy, czy dodano tu już użytkowników

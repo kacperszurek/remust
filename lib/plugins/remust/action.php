@@ -127,9 +127,17 @@ class action_plugin_remust extends DokuWiki_Action_Plugin {
         // Zabezpieczamy strony w przestrzeni remust przed edycją
         if ( strcmp(substr($ID, 0, 6), 'remust') == 0 ) {
             // Dzięki temu, nawet admin nie może ich edytować
-            $INFO['perm'] = AUTH_READ;
             $INFO['editable'] = 0;
             $INFO['writable'] = 0;
+
+            // Sprawdzamy uprawnienia użytkownika do normalnej strony
+            $perms = auth_quickaclcheck(substr($ID, 7));
+            
+            if ( $perms >= AUTH_READ ) {
+                $INFO['perm'] = AUTH_READ;
+            } else {
+                $INFO['perm'] = AUTH_NONE;
+            }
         }
 
         if ( is_array($event->data) || strcmp($event->data, 'remust') != 0 ) {
