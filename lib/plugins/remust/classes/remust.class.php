@@ -124,6 +124,9 @@ class remust
             // Jeżeli zaznaczono numer konkretnej rewizji
             $rev = ( isset($_GET['rev']) ? $_GET['rev'] : '');
 
+            // Jeżeli jednak wysyła się dane, bierzemy najnowszą
+            $rev = ( isset($_POST['users']) ? '' : $rev );
+        
             // Sprawdzamy, czy dodano tu już użytkowników
             $isPageExist = page_exists('remust:'.$this->_id, $rev);
 
@@ -165,6 +168,9 @@ class remust
                 $currentUserLogin = $_SERVER['REMOTE_USER'];
 
                 $usersToAdd = explode(",", $_POST['users']);
+                
+                // Lista maili do wysłania
+                $emailsToSend = array();
 
                 if ($isPageExist) {
                     // Ustawiamy userów którzy istnieją
@@ -192,7 +198,7 @@ class remust
                     foreach ($newUsersArray as $key => $val) {
                         if ( isset($usersArray[$key]) ) {
                             $pageContent[] = $key.'|'.date("d-m-Y H:i:s").'|'.$currentUserLogin;
-                            $this->_sendMail($usersArray[$key]['email'], DOKU_URL.'doku.php?id='.$this->_id);
+                            $emailsToSend[] = $usersArray[$key]['email']; 
                         }
                     }
                 } else {
@@ -201,7 +207,7 @@ class remust
                     foreach ($usersToAdd as $val) {
                         if ( isset($usersArray[$val]) ) {
                             $pageContent[] = $val.'|'.date("d-m-Y H:i:s").'|'.$currentUserLogin;
-                            $this->_sendMail($usersArray[$val]['email'], DOKU_URL.'doku.php?id='.$this->_id);
+                            $emailsToSend[] = $usersArray[$val]['email'];
                         }
                     }
                 }
@@ -213,6 +219,11 @@ class remust
                     //Zapisujemy stronę w przestrzeni remust
                     saveWikiText('remust:'.$this->_id, $pageContent, $this->_id, true);
                     
+                    // Wysyłamy e-maile
+                    foreach ( $emailsToSend as $key => $val ) {
+                        $this->_sendMail($val, DOKU_URL.'doku.php?id='.$this->_id);
+                    }
+
                     // Wyświetlamy wiadomość
                     msg($this->_doku->getLang('remust_save_success'), 1);
                 }
