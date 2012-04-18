@@ -384,7 +384,7 @@ class remust
 		search($pagesList, $dir, 'search_remust', array());
 
         $this->_return .= '
-                           <table cellpadding="0" cellspacing="0" border="0" class="display" id="remust-grid">
+                           <table cellpadding="0" cellspacing="0" border="0" class="display remust-grid">
                            <thead>
                                 <tr>
                                     <th>'.$this->_doku->getLang('remust_page').'</th>
