@@ -93,12 +93,31 @@ class remust
             foreach ($users as $key => $val) {
                 $usersArray[$key] = array('id' => $key, 'name' => $val['name'].' &#40;'.$key.'&#41;', 'email' => $val['mail']);
             }
+            
+            // Ile razy czekaliśmy
+            $waitCount = 0;
 
-            //@todo sprawdzanie blokady strony
-            //checklock('remust'.$this->_id);
+            if ( isset($_POST['users']) ) {
+                //sprawdzanie blokady strony
+                while ( checklock('remust:'.$this->_id) !== false ) {
+                    // Czekamy
+                    usleep(100);
 
-            // Blokujemy stronę
-            lock('remust:'.$this->_id);
+                    ++$waitCount;
+                    
+                    // Jeżeli czekamy za długo
+                    if ( $waitCount > 5 ) {
+                        $isError = true;
+                        msg($this->_doku->getLang('remust_concurrency_error'), -1);
+                        break;
+                    }
+                }
+            }
+
+            if ( !$isError) {
+                // Blokujemy stronę
+                lock('remust:'.$this->_id);
+            }
 
             $curentUsersArray = array();
 

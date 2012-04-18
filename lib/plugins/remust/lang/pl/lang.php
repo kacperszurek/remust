@@ -24,3 +24,4 @@ $lang['remust_newest_rev'] = 'Najnowsza rewizja';
 $lang['remust_rev_not_exist'] = 'Taka rewizja nie istnieje';
 $lang['remust_must_login'] = 'Musisz się zalogować aby przeglądać tą stronę';
 $lang['remust_cannot_read_this_page'] = 'Nie posiadasz uprawnień do oglądania tej strony';
+$lang['remust_concurrency_error'] = 'W tym samym czasie ktoś edytował tą podstronę. Spróbuj zapisać zmiany ponownie.';
